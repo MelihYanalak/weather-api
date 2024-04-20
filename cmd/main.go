@@ -3,14 +3,14 @@ package main
 import (
 	"net/http"
 
+	"github.com/MelihYanalak/weather-api/internal/application"
 	"github.com/MelihYanalak/weather-api/internal/controller"
-
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	// Initialize dependencies
-	// e.g., weatherService := application.NewWeatherService()
+	weatherService := application.NewWeatherService()
 
 	// Create a new WeatherController instance
 	weatherController := controller.NewWeatherController(weatherService)

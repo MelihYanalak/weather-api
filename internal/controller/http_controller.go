@@ -10,11 +10,11 @@ import (
 
 // WeatherController handles HTTP requests related to weather.
 type WeatherController struct {
-	weatherService application.WeatherService
+	weatherService application.IWeatherService
 }
 
 // NewWeatherController creates a new WeatherController instance.
-func NewWeatherController(weatherService application.WeatherService) *WeatherController {
+func NewWeatherController(weatherService application.IWeatherService) *WeatherController {
 	return &WeatherController{weatherService: weatherService}
 }
 
