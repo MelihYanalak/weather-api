@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/MelihYanalak/weather-api/internal/adapter"
 	"github.com/MelihYanalak/weather-api/internal/application"
 	"github.com/MelihYanalak/weather-api/internal/controller"
 	"github.com/MelihYanalak/weather-api/internal/logger"
@@ -19,9 +20,13 @@ func main() {
 	}
 	defer logger.Close()
 
+	geo_db := adapter.NewTile38Repository("9851", "test_collection")
+	geo_db.Initialize("build/new_york.geojson")
+
 	fmt.Println("program started")
 	// Initialize dependencies
-	weatherService := application.NewWeatherService()
+
+	weatherService := application.NewWeatherService(geo_db)
 
 	// Create a new WeatherController instance
 	weatherController := controller.NewWeatherController(weatherService)

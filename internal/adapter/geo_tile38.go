@@ -11,13 +11,19 @@ import (
 )
 
 type FeatureCollection struct {
+	Type     string    `json:"type"`
 	Features []Feature `json:"features"`
 }
 
 type Feature struct {
 	Type       string                 `json:"type"`
-	Geometry   json.RawMessage        `json:"geometry"`
 	Properties map[string]interface{} `json:"properties"`
+	Geometry   Geometry               `json:"geometry"`
+}
+
+type Geometry struct {
+	Type        string          `json:"type"`
+	Coordinates json.RawMessage `json:"coordinates"`
 }
 
 type Tile38Repository struct {
@@ -25,33 +31,44 @@ type Tile38Repository struct {
 	key string
 }
 
-func (repo Tile38Repository) pointInPolygon(ctx context.Context, key string, point [2]float64) (bool, error) {
-	cmd := fmt.Sprintf("WITHIN %s IDS POINT %f %f", key, point[1], point[0])
-	result, err := repo.rdb.Do(ctx, "EVALSHA", cmd).Result()
-	if err != nil {
-		return false, err
+func NewTile38Repository(port string, collectionName string) *Tile38Repository {
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:" + port,
+	})
+	return &Tile38Repository{
+		rdb: rdb,
+		key: collectionName,
 	}
-
-	ids, ok := result.([]interface{})
-	if !ok || len(ids) == 0 {
-		return false, nil // The point is not within any polygon
-	}
-
-	return true, nil // The point is inside at least one polygon
 }
 
 func (repo Tile38Repository) CheckLocation(latitude float64, longitude float64) (bool, error) {
-	point := [2]float64{latitude, longitude}
-	result, err := repo.pointInPolygon(context.TODO(), repo.key, point)
+	result, err := repo.rdb.Do(context.Background(), "INTERSECTS", repo.key, "IDS", "POINT", fmt.Sprintf("%f", latitude), fmt.Sprintf("%f", longitude)).Result()
 	if err != nil {
 		return false, err
 	}
+	fmt.Println(result)
+	resultSlice, ok := result.([]interface{})
+	if !ok {
+		return false, fmt.Errorf("unexpected result format")
+	}
 
-	return result, nil
+	// Check if the slice is empty or the ID slice is empty
+	if len(resultSlice) < 2 {
+		return false, nil // No IDs returned, point is not inside any polygon
+	}
+
+	// Assume that if we reach here, there are IDs in the second slice element
+	idsSlice, ok := resultSlice[1].([]interface{})
+	if !ok || len(idsSlice) == 0 {
+		return false, nil // No intersecting IDs, point is not inside any polygon
+	}
+
+	// If there are IDs, the point is inside at least one polygon
+	return true, nil
 }
 
-func (repo Tile38Repository) Initialize(filePath string, port string, collectionName string) error {
-	//filePath := "build/new_york.geojson"
+func (repo Tile38Repository) Initialize(filePath string) error {
+
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("Failed to read file: %v", err)
@@ -63,27 +80,23 @@ func (repo Tile38Repository) Initialize(filePath string, port string, collection
 		log.Fatalf("Error parsing GeoJSON: %v", err)
 	}
 
-	// Create a new Redis client
-	repo.rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:" + port, // or the address of your Tile38 server //PORT : ******9851*********
-		Password: "",                  // no password set
-		DB:       0,                   // use default DB
-	})
 	ctx := context.Background()
-	repo.rdb.Do(ctx, "DROP", collectionName).Result()
-	// Insert each feature into the Tile38 database
-	for i, feature := range geoJSON.Features {
-		id := fmt.Sprintf("feature_%d", i) // Generate a unique ID for each feature
-		geoJSONStr, err := feature.Geometry.MarshalJSON()
+	_, err = repo.rdb.Do(ctx, "DROP", repo.key).Result()
+	if err != nil {
+		log.Printf("Error dropping collection: %v", err)
+	}
+
+	for idx, feature := range geoJSON.Features {
+		id := fmt.Sprintf("feature_%d", idx)              // Generate a unique ID for each feature
+		geoJSONStr, err := json.Marshal(feature.Geometry) // Use the entire geometry object
 		if err != nil {
 			log.Printf("Error marshalling geometry: %v", err)
 			continue
 		}
 
-		_, err = repo.rdb.Do(ctx, "SET", collectionName, id, "OBJECT", string(geoJSONStr)).Result()
+		_, err = repo.rdb.Do(ctx, "SET", repo.key, id, "OBJECT", string(geoJSONStr)).Result()
 		if err != nil {
-			log.Printf("Error inserting feature %d: %v", i, err)
-			continue
+			log.Printf("Error inserting feature %s: %v", id, err)
 		}
 	}
 
