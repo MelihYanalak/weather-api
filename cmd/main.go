@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/MelihYanalak/weather-api/internal/application"
@@ -9,6 +10,7 @@ import (
 )
 
 func main() {
+	fmt.Println("program started")
 	// Initialize dependencies
 	weatherService := application.NewWeatherService()
 
