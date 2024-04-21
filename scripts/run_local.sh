@@ -1,4 +1,4 @@
 #!/bin/bash
 cd ..
-go build -o build/weather-api.exe cmd/main.go
+go build -o build/weather-api cmd/main.go
 #.\build\weather-api.exe
