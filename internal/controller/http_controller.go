@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/MelihYanalak/weather-api/internal/application"
 )
@@ -18,18 +17,25 @@ func NewWeatherController(weatherService application.IWeatherService) *WeatherCo
 	return &WeatherController{weatherService: weatherService}
 }
 
+type Location struct {
+	Lat  float64 `json:"lat"`
+	Long float64 `json:"long"`
+}
+
 // CheckWeatherHandler handles the "/weather" endpoint.
 func (c *WeatherController) CheckWeatherHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse query parameters
-	lat := r.URL.Query().Get("lat")
-	long := r.URL.Query().Get("long")
+	var location Location
+	if err := json.NewDecoder(r.Body).Decode(&location); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	// Convert lat and long to float64 (you might want to add error handling here)
-	latFloat, _ := strconv.ParseFloat(lat, 64)
-	longFloat, _ := strconv.ParseFloat(long, 64)
+	// You can directly access lat and long as float64
+	lat := location.Lat
+	long := location.Long
 
 	// Call the weather service method
-	weatherData, err := c.weatherService.CheckWeather(latFloat, longFloat)
+	weatherData, err := c.weatherService.CheckWeather(lat, long)
 	if err != nil {
 		// Handle error
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
