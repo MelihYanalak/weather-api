@@ -33,7 +33,7 @@ type Tile38Repository struct {
 
 func NewTile38Repository(port string, collectionName string) *Tile38Repository {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:" + port,
+		Addr: "tile38:" + port,
 	})
 	return &Tile38Repository{
 		rdb: rdb,

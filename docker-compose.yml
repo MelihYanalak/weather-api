@@ -5,11 +5,11 @@ services:
     build: .
     ports:
       - "8080:8080"
-
+    depends_on:
+      - tile38
   tile38:
-    image: alpine:latest
-    command: sh -c "tar -xzvf /tile38-1.32.2-linux-amd64.tar.gz && cp tile38-1.32.2-linux-amd64/tile38-server /usr/local/bin/ && rm -rf tile38-1.32.2-linux-amd64 && tile38-server"
-    volumes:
-      - ./third_party/tile38-1.32.2-linux-amd64.tar.gz:/tile38-1.32.2-linux-amd64.tar.gz
+    image: tile38/tile38
     ports:
       - "9851:9851"
+
+
