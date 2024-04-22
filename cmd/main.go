@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/MelihYanalak/weather-api/internal/adapter"
 	"github.com/MelihYanalak/weather-api/internal/application"
@@ -21,7 +22,9 @@ func main() {
 	defer logger.Close()
 
 	geo_db := adapter.NewTile38Repository("9851", "test_collection")
-	geo_db.Initialize("build/new_york.geojson")
+	fmt.Println("current directory is ")
+	fmt.Println(os.Getwd())
+	geo_db.Initialize("new_york.geojson")
 
 	fmt.Println("program started")
 	// Initialize dependencies

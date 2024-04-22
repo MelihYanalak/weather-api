@@ -21,12 +21,17 @@ FROM alpine:latest
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
+COPY static/ .
+
 # Copy the Pre-built binary file from the previous stage
 COPY --from=build /app/weather-api .
 
-COPY static/ ./
+
+
+
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
 # Command to run the executable
+
 CMD ["./weather-api"]
