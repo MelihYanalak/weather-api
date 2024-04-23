@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/MelihYanalak/weather-api/internal/adapter"
 	"github.com/MelihYanalak/weather-api/internal/application"
@@ -13,33 +12,25 @@ import (
 )
 
 func main() {
-
-	logger, err := logger.NewFileLogger(logger.DebugLevel, "weather-api.log")
+	var err error
 	if err != nil {
 		fmt.Println("Failed to create logger:", err)
 		return
 	}
-	defer logger.Close()
+	defer logger.Log.Close()
 
-	geo_db := adapter.NewTile38Repository("9851", "test_collection")
-	fmt.Println("current directory is ")
-	fmt.Println(os.Getwd())
-	geo_db.Initialize("new_york.geojson")
-
+	geoDb := adapter.NewTile38Repository("9851", "test_collection")
+	geoDb.Initialize("new_york.geojson")
+	weatherAPI := adapter.NewOpenWeatherAPI()
 	fmt.Println("program started")
-	// Initialize dependencies
 
-	weatherService := application.NewWeatherService(geo_db)
+	weatherService := application.NewWeatherService(geoDb, weatherAPI)
 
-	// Create a new WeatherController instance
 	weatherController := controller.NewWeatherController(weatherService)
 
-	// Create a new HTTP router
 	router := mux.NewRouter()
 
-	// Register routes
-	router.HandleFunc("/weather", weatherController.CheckWeatherHandler).Methods("GET")
+	router.HandleFunc("/weather", weatherController.GetWeather).Methods("GET")
 
-	// Start the HTTP server
 	http.ListenAndServe(":8080", router)
 }

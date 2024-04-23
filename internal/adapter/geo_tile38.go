@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/MelihYanalak/weather-api/internal/logger"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -52,18 +53,15 @@ func (repo Tile38Repository) CheckLocation(latitude float64, longitude float64) 
 		return false, fmt.Errorf("unexpected result format")
 	}
 
-	// Check if the slice is empty or the ID slice is empty
 	if len(resultSlice) < 2 {
-		return false, nil // No IDs returned, point is not inside any polygon
+		return false, nil
 	}
 
-	// Assume that if we reach here, there are IDs in the second slice element
 	idsSlice, ok := resultSlice[1].([]interface{})
 	if !ok || len(idsSlice) == 0 {
-		return false, nil // No intersecting IDs, point is not inside any polygon
+		return false, nil
 	}
 
-	// If there are IDs, the point is inside at least one polygon
 	return true, nil
 }
 
@@ -74,7 +72,6 @@ func (repo Tile38Repository) Initialize(filePath string) error {
 		log.Fatalf("Failed to read file: %v", err)
 	}
 
-	// Parse the GeoJSON data
 	var geoJSON FeatureCollection
 	if err := json.Unmarshal(data, &geoJSON); err != nil {
 		log.Fatalf("Error parsing GeoJSON: %v", err)
@@ -87,8 +84,8 @@ func (repo Tile38Repository) Initialize(filePath string) error {
 	}
 
 	for idx, feature := range geoJSON.Features {
-		id := fmt.Sprintf("feature_%d", idx)              // Generate a unique ID for each feature
-		geoJSONStr, err := json.Marshal(feature.Geometry) // Use the entire geometry object
+		id := fmt.Sprintf("feature_%d", idx)
+		geoJSONStr, err := json.Marshal(feature.Geometry)
 		if err != nil {
 			log.Printf("Error marshalling geometry: %v", err)
 			continue
@@ -96,10 +93,10 @@ func (repo Tile38Repository) Initialize(filePath string) error {
 
 		_, err = repo.rdb.Do(ctx, "SET", repo.key, id, "OBJECT", string(geoJSONStr)).Result()
 		if err != nil {
-			log.Printf("Error inserting feature %s: %v", id, err)
+			logger.Log.Error("Error inserting feature" + id + err.Error())
 		}
 	}
 
-	fmt.Println("GeoJSON data has been loaded into Tile38")
+	logger.Log.Info("GeoJSON data has been loaded into Tile38")
 	return nil
 }

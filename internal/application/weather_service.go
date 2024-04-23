@@ -8,24 +8,31 @@ import (
 )
 
 type WeatherService struct {
-	gr repository.GeoRepository
+	gr   repository.IGeoRepository
+	wApi repository.IWeatherAPI
 }
 
-func NewWeatherService(geo_repo repository.GeoRepository) *WeatherService {
+func NewWeatherService(geoRepository repository.IGeoRepository, weatherApi repository.IWeatherAPI) *WeatherService {
 	return &WeatherService{
-		gr: geo_repo,
+		gr:   geoRepository,
+		wApi: weatherApi,
 	}
 }
-func (ws WeatherService) CheckWeather(lat, long float64) (domain.Weather, error) {
+func (ws WeatherService) GetWeather(lat, long float64) (domain.Weather, error) {
 	result, err := ws.gr.CheckLocation(lat, long)
 	if err != nil {
-		fmt.Println("error")
+		return domain.Weather{}, err
 	}
-	weatherData := domain.Weather{
-		Temperature: 15,
-		Condition:   "good",
-		Valid:       result,
+	if !result {
+		fmt.Println("point not in market region")
+		//define specific err type for it
+		return domain.Weather{}, err
 	}
-	return weatherData, nil
+
+	weather, err := ws.wApi.GetWeatherData(lat, long)
+	if err != nil {
+		return domain.Weather{}, err
+	}
+	return weather, nil
 
 }

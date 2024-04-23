@@ -5,5 +5,5 @@ import (
 )
 
 type IWeatherService interface {
-	CheckWeather(lat, long float64) (domain.Weather, error)
+	GetWeather(lat, long float64) (domain.Weather, error)
 }

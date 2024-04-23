@@ -6,7 +6,6 @@ import (
 	"sync"
 )
 
-// LogLevel represents different logging levels
 type LogLevel int
 
 const (
@@ -16,7 +15,6 @@ const (
 	ErrorLevel
 )
 
-// Logger is the interface for logging
 type Logger interface {
 	Debug(message string)
 	Info(message string)
@@ -24,12 +22,13 @@ type Logger interface {
 	Warning(message string)
 }
 
-// BasicFileLogger is a basic file-based implementation of Logger
 type FileLogger struct {
 	level LogLevel
 	file  *os.File
 	mu    sync.Mutex
 }
+
+var Log, _ = NewFileLogger(DebugLevel, "weather-api.log")
 
 func NewFileLogger(level LogLevel, filename string) (*FileLogger, error) {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
