@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/MelihYanalak/weather-api/internal/domain"
 	"github.com/redis/go-redis/v9"
@@ -44,7 +45,7 @@ func (c *CacheRedis) InsertData(key string, weather domain.Weather) error {
 		return err
 	}
 
-	err = c.client.Set(context.Background(), key, string(data), 0).Err()
+	err = c.client.Set(context.Background(), key, string(data), time.Second*60).Err()
 	if err != nil {
 		return err
 	}

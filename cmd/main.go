@@ -12,11 +12,7 @@ import (
 )
 
 func main() {
-	var err error
-	if err != nil {
-		fmt.Println("Failed to create logger:", err)
-		return
-	}
+
 	defer logger.Log.Close()
 
 	geoDb := adapter.NewTile38Repository("9851", "test_collection")
