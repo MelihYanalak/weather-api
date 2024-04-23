@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -12,11 +13,11 @@ import (
 )
 
 func main() {
-
+	//environment var
 	defer logger.Log.Close()
 
 	geoDb := adapter.NewTile38Repository("9851", "test_collection")
-	geoDb.Initialize("new_york.geojson")
+	geoDb.Initialize(context.Background(), "new_york.geojson")
 	weatherAPI := adapter.NewOpenWeatherAPI()
 	cacheRedis := adapter.NewCacheRedis("6379")
 	fmt.Println("program started")

@@ -1,6 +1,8 @@
 package adapter
 
 import (
+	"context"
+
 	"github.com/MelihYanalak/weather-api/internal/domain"
 	owm "github.com/briandowns/openweathermap"
 )
@@ -14,7 +16,7 @@ func NewOpenWeatherAPI() *OpenWeatherAPI {
 	return &OpenWeatherAPI{}
 }
 
-func (owApi OpenWeatherAPI) GetWeatherData(latitude float64, longitude float64) (domain.Weather, error) {
+func (owApi OpenWeatherAPI) Get(ctx context.Context, latitude float64, longitude float64) (domain.Weather, error) {
 
 	currentWeather, err := owm.NewCurrent("C", "en", API_KEY)
 	if err != nil {

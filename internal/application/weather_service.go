@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/MelihYanalak/weather-api/internal/domain"
@@ -8,20 +9,20 @@ import (
 )
 
 type WeatherService struct {
-	gr   repository.IGeoRepository
-	wApi repository.IWeatherAPI
-	cr   repository.ICacheRepository
+	geoRepo    repository.GeoRepository
+	weatherApi repository.WeatherAPI
+	cacheRepo  repository.CacheRepository
 }
 
-func NewWeatherService(geoRepository repository.IGeoRepository, weatherApi repository.IWeatherAPI, cacheRepository repository.ICacheRepository) *WeatherService {
+func NewWeatherService(geoRepository repository.GeoRepository, weatherApi repository.WeatherAPI, cacheRepository repository.CacheRepository) *WeatherService {
 	return &WeatherService{
-		gr:   geoRepository,
-		wApi: weatherApi,
-		cr:   cacheRepository,
+		geoRepo:    geoRepository,
+		weatherApi: weatherApi,
+		cacheRepo:  cacheRepository,
 	}
 }
-func (ws WeatherService) GetWeather(lat, long float64) (domain.Weather, error) {
-	result, err := ws.gr.CheckLocation(lat, long)
+func (ws WeatherService) GetWeather(ctx context.Context, lat, long float64) (domain.Weather, error) {
+	result, err := ws.geoRepo.CheckLocation(ctx, lat, long)
 	if err != nil {
 		return domain.Weather{}, err
 	}
@@ -31,15 +32,15 @@ func (ws WeatherService) GetWeather(lat, long float64) (domain.Weather, error) {
 		return domain.Weather{}, err
 	}
 
-	key, _ := ws.cr.IndexKey(lat, long)
-	weather, err := ws.cr.RetrieveData(key)
+	key, _ := ws.cacheRepo.IndexKey(ctx, lat, long)
+	weather, err := ws.cacheRepo.Get(ctx, key)
 	if err != nil { //TODO : convert err to not found type
 		fmt.Println("Not found in cache, requesting to API")
-		weather, err = ws.wApi.GetWeatherData(lat, long)
+		weather, err = ws.weatherApi.Get(ctx, lat, long)
 		if err != nil {
 			return domain.Weather{}, err
 		}
-		ws.cr.InsertData(key, weather)
+		ws.cacheRepo.Set(ctx, key, weather)
 
 	} else {
 		fmt.Println("found in cache")

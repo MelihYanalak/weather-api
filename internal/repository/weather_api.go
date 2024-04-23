@@ -1,7 +1,11 @@
 package repository
 
-import "github.com/MelihYanalak/weather-api/internal/domain"
+import (
+	"context"
 
-type IWeatherAPI interface {
-	GetWeatherData(latitude float64, longitude float64) (domain.Weather, error)
+	"github.com/MelihYanalak/weather-api/internal/domain"
+)
+
+type WeatherAPI interface {
+	Get(ctx context.Context, float64, longitude float64) (domain.Weather, error)
 }

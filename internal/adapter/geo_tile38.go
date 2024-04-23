@@ -12,19 +12,19 @@ import (
 )
 
 type FeatureCollection struct {
-	Type     string    `json:"type"`
-	Features []Feature `json:"features"`
+	Type     string
+	Features []Feature
 }
 
 type Feature struct {
-	Type       string                 `json:"type"`
-	Properties map[string]interface{} `json:"properties"`
-	Geometry   Geometry               `json:"geometry"`
+	Type       string
+	Properties map[string]interface{}
+	Geometry   Geometry
 }
 
 type Geometry struct {
-	Type        string          `json:"type"`
-	Coordinates json.RawMessage `json:"coordinates"`
+	Type        string
+	Coordinates json.RawMessage
 }
 
 type Tile38Repository struct {
@@ -42,8 +42,8 @@ func NewTile38Repository(port string, collectionName string) *Tile38Repository {
 	}
 }
 
-func (repo Tile38Repository) CheckLocation(latitude float64, longitude float64) (bool, error) {
-	result, err := repo.rdb.Do(context.Background(), "INTERSECTS", repo.key, "IDS", "POINT", fmt.Sprintf("%f", latitude), fmt.Sprintf("%f", longitude)).Result()
+func (repo Tile38Repository) CheckLocation(ctx context.Context, latitude float64, longitude float64) (bool, error) {
+	result, err := repo.rdb.Do(ctx, "INTERSECTS", repo.key, "IDS", "POINT", fmt.Sprintf("%f", latitude), fmt.Sprintf("%f", longitude)).Result()
 	if err != nil {
 		return false, err
 	}
@@ -65,7 +65,7 @@ func (repo Tile38Repository) CheckLocation(latitude float64, longitude float64) 
 	return true, nil
 }
 
-func (repo Tile38Repository) Initialize(filePath string) error {
+func (repo Tile38Repository) Initialize(ctx context.Context, filePath string) error {
 
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -77,7 +77,6 @@ func (repo Tile38Repository) Initialize(filePath string) error {
 		log.Fatalf("Error parsing GeoJSON: %v", err)
 	}
 
-	ctx := context.Background()
 	_, err = repo.rdb.Do(ctx, "DROP", repo.key).Result()
 	if err != nil {
 		log.Printf("Error dropping collection: %v", err)
