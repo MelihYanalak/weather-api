@@ -11,5 +11,8 @@ services:
     image: tile38/tile38
     ports:
       - "9851:9851"
-
-
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+  

@@ -22,9 +22,10 @@ func main() {
 	geoDb := adapter.NewTile38Repository("9851", "test_collection")
 	geoDb.Initialize("new_york.geojson")
 	weatherAPI := adapter.NewOpenWeatherAPI()
+	cacheRedis := adapter.NewCacheRedis("6379")
 	fmt.Println("program started")
 
-	weatherService := application.NewWeatherService(geoDb, weatherAPI)
+	weatherService := application.NewWeatherService(geoDb, weatherAPI, cacheRedis)
 
 	weatherController := controller.NewWeatherController(weatherService)
 

@@ -8,7 +8,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-
+RUN apk add --no-cache gcc musl-dev
 RUN go build -o /app/weather-api cmd/main.go
 FROM alpine:latest
 
@@ -17,8 +17,6 @@ WORKDIR /app
 COPY static/ .
 
 COPY --from=build /app/weather-api .
-
-
 
 
 EXPOSE 8080
