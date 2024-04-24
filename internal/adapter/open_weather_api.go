@@ -7,18 +7,19 @@ import (
 	owm "github.com/briandowns/openweathermap"
 )
 
-var API_KEY string = "98f280d8961dcbc064b1d69f980c5c5a"
-
 type OpenWeatherAPI struct {
+	key string
 }
 
-func NewOpenWeatherAPI() *OpenWeatherAPI {
-	return &OpenWeatherAPI{}
+func NewOpenWeatherAPI(apiKey string) *OpenWeatherAPI {
+	return &OpenWeatherAPI{
+		key: apiKey,
+	}
 }
 
 func (owApi OpenWeatherAPI) Get(ctx context.Context, latitude float64, longitude float64) (domain.Weather, error) {
 
-	currentWeather, err := owm.NewCurrent("C", "en", API_KEY)
+	currentWeather, err := owm.NewCurrent("C", "en", owApi.key)
 	if err != nil {
 		//error and exit
 	}

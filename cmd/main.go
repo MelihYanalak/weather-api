@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/MelihYanalak/weather-api/internal/adapter"
 	"github.com/MelihYanalak/weather-api/internal/application"
@@ -13,17 +14,18 @@ import (
 )
 
 func main() {
-	//environment var
 	defer logger.Log.Close()
+	tile38Host := os.Getenv("TILE38_HOST")
+	redisHost := os.Getenv("REDIS_HOST")
+	owmKey := os.Getenv("OWM_API_KEY")
+	geoDb := adapter.NewTile38Repository(tile38Host)
+	cacheRedis := adapter.NewCacheRedis(redisHost)
+	weatherAPI := adapter.NewOpenWeatherAPI(owmKey)
 
-	geoDb := adapter.NewTile38Repository("9851", "test_collection")
 	geoDb.Initialize(context.Background(), "new_york.geojson")
-	weatherAPI := adapter.NewOpenWeatherAPI()
-	cacheRedis := adapter.NewCacheRedis("6379")
 	fmt.Println("program started")
 
 	weatherService := application.NewWeatherService(geoDb, weatherAPI, cacheRedis)
-
 	weatherController := controller.NewWeatherController(weatherService)
 
 	router := mux.NewRouter()

@@ -15,11 +15,11 @@ type CacheRedis struct {
 	client *redis.Client
 }
 
-func NewCacheRedis(portNumber string) *CacheRedis {
+func NewCacheRedis(host string) *CacheRedis {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "redis:" + portNumber, // Redis server address
-		Password: "",                    // no password set
-		DB:       0,                     // use default DB
+		Addr:     host, // Redis server address
+		Password: "",   // no password set
+		DB:       0,    // use default DB
 	})
 	return &CacheRedis{client: rdb}
 }

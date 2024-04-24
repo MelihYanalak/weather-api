@@ -32,13 +32,13 @@ type Tile38Repository struct {
 	key string
 }
 
-func NewTile38Repository(port string, collectionName string) *Tile38Repository {
+func NewTile38Repository(host string) *Tile38Repository {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "tile38:" + port,
+		Addr: host,
 	})
 	return &Tile38Repository{
 		rdb: rdb,
-		key: collectionName,
+		key: "weather_collection",
 	}
 }
 

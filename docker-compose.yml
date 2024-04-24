@@ -7,6 +7,11 @@ services:
       - "8080:8080"
     depends_on:
       - tile38
+      - redis
+    environment:
+      - OWM_API_KEY=value
+      - REDIS_HOST=redis:6379
+      - TILE38_HOST=tile38:9851
   tile38:
     image: tile38/tile38
     ports:
