@@ -28,8 +28,6 @@ type FileLogger struct {
 	mu    sync.Mutex
 }
 
-var Log, _ = NewFileLogger(DebugLevel, "weather-api.log")
-
 func NewFileLogger(level LogLevel, filename string) (*FileLogger, error) {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {

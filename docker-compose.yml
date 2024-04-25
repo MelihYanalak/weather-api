@@ -9,13 +9,13 @@ services:
       - tile38
       - redis
     environment:
-      - OWM_API_KEY=value
+      - OWM_API_KEY=98f280d8961dcbc064b1d69f980c5c5a
       - REDIS_HOST=redis:6379
       - TILE38_HOST=tile38:9851
   tile38:
     image: tile38/tile38
     ports:
-      - "9851:9851"
+      - "9851:9851" 
   redis:
     image: redis
     ports:

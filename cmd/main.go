@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,7 +13,8 @@ import (
 )
 
 func main() {
-	defer logger.Log.Close()
+	logger, _ := logger.NewFileLogger(logger.DebugLevel, "weather-api.log")
+	defer logger.Close()
 	tile38Host := os.Getenv("TILE38_HOST")
 	redisHost := os.Getenv("REDIS_HOST")
 	owmKey := os.Getenv("OWM_API_KEY")
@@ -22,10 +22,10 @@ func main() {
 	cacheRedis := adapter.NewCacheRedis(redisHost)
 	weatherAPI := adapter.NewOpenWeatherAPI(owmKey)
 
-	geoDb.Initialize(context.Background(), "new_york.geojson")
+	// geoDb.Initialize(context.Background(), "new_york.geojson")
 	fmt.Println("program started")
 
-	weatherService := application.NewWeatherService(geoDb, weatherAPI, cacheRedis)
+	weatherService := application.NewWeatherService(geoDb, weatherAPI, cacheRedis, logger)
 	weatherController := controller.NewWeatherController(weatherService)
 
 	router := mux.NewRouter()

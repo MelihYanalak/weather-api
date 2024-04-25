@@ -5,20 +5,38 @@ import (
 	"fmt"
 
 	"github.com/MelihYanalak/weather-api/internal/domain"
+	"github.com/MelihYanalak/weather-api/internal/logger"
 	"github.com/MelihYanalak/weather-api/internal/repository"
 )
+
+type CacheRepository interface {
+	Get(ctx context.Context, key string) (domain.Weather, error)
+	Set(ctx context.Context, key string, weather domain.Weather) error
+	IndexKey(ctx context.Context, lat, long float64) (string, error)
+}
+
+type GeoRepository interface {
+	CheckLocation(ctx context.Context, latitude float64, longitude float64) (bool, error)
+	Initialize(ctx context.Context, filePath string) error
+}
+
+type WeatherAPI interface {
+	Get(ctx context.Context, float64, longitude float64) (domain.Weather, error)
+}
 
 type WeatherService struct {
 	geoRepo    repository.GeoRepository
 	weatherApi repository.WeatherAPI
 	cacheRepo  repository.CacheRepository
+	logger     logger.Logger
 }
 
-func NewWeatherService(geoRepository repository.GeoRepository, weatherApi repository.WeatherAPI, cacheRepository repository.CacheRepository) *WeatherService {
+func NewWeatherService(geoRepository repository.GeoRepository, weatherApi repository.WeatherAPI, cacheRepository repository.CacheRepository, logger logger.Logger) *WeatherService {
 	return &WeatherService{
 		geoRepo:    geoRepository,
 		weatherApi: weatherApi,
 		cacheRepo:  cacheRepository,
+		logger:     logger,
 	}
 }
 func (ws WeatherService) GetWeather(ctx context.Context, lat, long float64) (domain.Weather, error) {
@@ -27,7 +45,7 @@ func (ws WeatherService) GetWeather(ctx context.Context, lat, long float64) (dom
 		return domain.Weather{}, err
 	}
 	if !result {
-		fmt.Println("point not in market region")
+		ws.logger.Error("Point not in market region")
 		//define specific err type for it
 		return domain.Weather{}, err
 	}
