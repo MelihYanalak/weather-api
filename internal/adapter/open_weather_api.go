@@ -2,7 +2,6 @@ package adapter
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/MelihYanalak/weather-api/internal/domain"
 	owm "github.com/briandowns/openweathermap"
@@ -22,11 +21,11 @@ func (owApi OpenWeatherAPI) Get(ctx context.Context, latitude float64, longitude
 
 	currentWeather, err := owm.NewCurrent("C", "en", owApi.key)
 	if err != nil {
-		fmt.Println("can not create new Current")
+		return domain.Weather{}, err
 	}
 	err = currentWeather.CurrentByCoordinates(&owm.Coordinates{Longitude: longitude, Latitude: latitude})
 	if err != nil {
-		fmt.Println("can not get coordinates:", latitude, "-", longitude)
+		return domain.Weather{}, err
 	}
 	return domain.Weather{
 		Definition:  currentWeather.Weather[0].Main,

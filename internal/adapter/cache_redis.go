@@ -15,6 +15,8 @@ type CacheRedis struct {
 	client *redis.Client
 }
 
+var TTL int = 60
+
 func NewCacheRedis(host string) *CacheRedis {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     host, // Redis server address
@@ -45,7 +47,7 @@ func (c *CacheRedis) Set(ctx context.Context, key string, weather domain.Weather
 		return err
 	}
 
-	err = c.client.Set(ctx, key, string(data), time.Second*60).Err()
+	err = c.client.Set(ctx, key, string(data), time.Second*time.Duration(TTL)).Err()
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/MelihYanalak/weather-api/internal/domain"
 	"github.com/MelihYanalak/weather-api/internal/logger"
@@ -42,27 +42,30 @@ func NewWeatherService(geoRepository repository.GeoRepository, weatherApi reposi
 func (ws WeatherService) GetWeather(ctx context.Context, lat, long float64) (domain.Weather, error) {
 	result, err := ws.geoRepo.CheckLocation(ctx, lat, long)
 	if err != nil {
-		return domain.Weather{}, err
+		ws.logger.Error(err.Error())
+		return domain.Weather{}, errors.New("internal server error")
 	}
 	if !result {
-		ws.logger.Error("Point not in market region")
-		//define specific err type for it
-		return domain.Weather{}, err
+		ws.logger.Error("point not in the market region")
+		return domain.Weather{}, errors.New("point not in the market region")
 	}
 
-	key, _ := ws.cacheRepo.IndexKey(ctx, lat, long)
+	key, err := ws.cacheRepo.IndexKey(ctx, lat, long)
+	if err != nil {
+		ws.logger.Error(err.Error())
+		return domain.Weather{}, errors.New("internal server error")
+	}
 	weather, err := ws.cacheRepo.Get(ctx, key)
-	if err != nil { //TODO : convert err to not found type
-		fmt.Println("Not found in cache, requesting to API")
+	if err != nil {
 		weather, err = ws.weatherApi.Get(ctx, lat, long)
 		if err != nil {
-			return domain.Weather{}, err
+			ws.logger.Error(err.Error())
+			return domain.Weather{}, errors.New("internal server error")
 		}
 		ws.cacheRepo.Set(ctx, key, weather)
 
-	} else {
-		fmt.Println("found in cache")
 	}
+
 	return weather, nil
 
 }

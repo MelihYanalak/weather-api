@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
@@ -27,10 +28,10 @@ func (repo Tile38Repository) CheckLocation(ctx context.Context, latitude float64
 	if err != nil {
 		return false, err
 	}
-	fmt.Println(result)
+
 	resultSlice, ok := result.([]interface{})
 	if !ok {
-		return false, fmt.Errorf("unexpected result format")
+		return false, errors.New("unexpected result format")
 	}
 
 	if len(resultSlice) < 2 {

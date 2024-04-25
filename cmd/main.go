@@ -13,17 +13,19 @@ import (
 )
 
 func main() {
-	logger, _ := logger.NewFileLogger(logger.DebugLevel, "weather-api.log")
+	logger, err := logger.NewFileLogger(logger.DebugLevel, "weather-api.log")
+	if err != nil {
+		fmt.Println("Could not create logger")
+	}
 	defer logger.Close()
+
 	tile38Host := os.Getenv("TILE38_HOST")
 	redisHost := os.Getenv("REDIS_HOST")
 	owmKey := os.Getenv("OWM_API_KEY")
+
 	geoDb := adapter.NewTile38Repository(tile38Host)
 	cacheRedis := adapter.NewCacheRedis(redisHost)
 	weatherAPI := adapter.NewOpenWeatherAPI(owmKey)
-
-	// geoDb.Initialize(context.Background(), "new_york.geojson")
-	fmt.Println("program started")
 
 	weatherService := application.NewWeatherService(geoDb, weatherAPI, cacheRedis, logger)
 	weatherController := controller.NewWeatherController(weatherService)
@@ -32,5 +34,10 @@ func main() {
 
 	router.HandleFunc("/weather", weatherController.GetWeather).Methods("GET")
 
-	http.ListenAndServe(":8080", router)
+	logger.Info("Program started")
+
+	err = http.ListenAndServe(":8080", router)
+	if err != nil {
+		logger.Error("Could not start server")
+	}
 }

@@ -34,7 +34,7 @@ func (c *WeatherController) GetWeather(w http.ResponseWriter, r *http.Request) {
 
 	weatherData, err := c.weatherService.GetWeather(context.TODO(), location.Lat, location.Long)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
