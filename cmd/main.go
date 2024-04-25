@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
+
+	"log"
 
 	"github.com/MelihYanalak/weather-api/internal/adapter"
 	"github.com/MelihYanalak/weather-api/internal/application"
@@ -15,7 +16,7 @@ import (
 func main() {
 	logger, err := logger.NewFileLogger(logger.DebugLevel, "weather-api.log")
 	if err != nil {
-		fmt.Println("Could not create logger")
+		log.Fatal("Could not create logger")
 	}
 	defer logger.Close()
 

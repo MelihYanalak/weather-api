@@ -9,21 +9,6 @@ import (
 	"github.com/MelihYanalak/weather-api/internal/repository"
 )
 
-type CacheRepository interface {
-	Get(ctx context.Context, key string) (domain.Weather, error)
-	Set(ctx context.Context, key string, weather domain.Weather) error
-	IndexKey(ctx context.Context, lat, long float64) (string, error)
-}
-
-type GeoRepository interface {
-	CheckLocation(ctx context.Context, latitude float64, longitude float64) (bool, error)
-	Initialize(ctx context.Context, filePath string) error
-}
-
-type WeatherAPI interface {
-	Get(ctx context.Context, float64, longitude float64) (domain.Weather, error)
-}
-
 type WeatherService struct {
 	geoRepo    repository.GeoRepository
 	weatherApi repository.WeatherAPI
@@ -43,7 +28,7 @@ func (ws WeatherService) GetWeather(ctx context.Context, lat, long float64) (dom
 	result, err := ws.geoRepo.CheckLocation(ctx, lat, long)
 	if err != nil {
 		ws.logger.Error(err.Error())
-		return domain.Weather{}, errors.New("internal server error")
+		return domain.Weather{}, err
 	}
 	if !result {
 		ws.logger.Error("point not in the market region")
@@ -53,17 +38,16 @@ func (ws WeatherService) GetWeather(ctx context.Context, lat, long float64) (dom
 	key, err := ws.cacheRepo.IndexKey(ctx, lat, long)
 	if err != nil {
 		ws.logger.Error(err.Error())
-		return domain.Weather{}, errors.New("internal server error")
+		return domain.Weather{}, err
 	}
 	weather, err := ws.cacheRepo.Get(ctx, key)
 	if err != nil {
 		weather, err = ws.weatherApi.Get(ctx, lat, long)
 		if err != nil {
 			ws.logger.Error(err.Error())
-			return domain.Weather{}, errors.New("internal server error")
+			return domain.Weather{}, err
 		}
 		ws.cacheRepo.Set(ctx, key, weather)
-
 	}
 
 	return weather, nil
